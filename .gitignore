@@ -1,0 +1,36 @@
+# Dataset (too large for git; see data/README.md for download instructions)
+data/split_dataset/
+
+# Trained model weights (too large for git; regenerate by running the notebook)
+models/*.h5
+
+# Not for the public repo
+private_not_for_github/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# Frontend (Node/React)
+frontend/node_modules/
+frontend/build/
+
+# Local env files (copy .env.example to .env and fill in real values)
+.env
+frontend/.env
+backend/.env
+
+# Dev server logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Claude Code local settings
+.claude/

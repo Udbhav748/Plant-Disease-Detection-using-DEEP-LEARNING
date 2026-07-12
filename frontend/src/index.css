@@ -1,0 +1,37 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background dark:bg-background-dark text-text-primary dark:text-text-primary-dark;
+    @apply font-sans antialiased transition-colors duration-200;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-heading text-text-primary dark:text-text-primary-dark;
+  }
+
+  ::selection {
+    @apply bg-accent-light/30;
+  }
+
+  :focus-visible {
+    @apply outline-none ring-2 ring-accent ring-offset-2 ring-offset-background dark:ring-offset-background-dark;
+  }
+}
+
+@layer utilities {
+  .scrollbar-hidden::-webkit-scrollbar {
+    display: none;
+  }
+}
