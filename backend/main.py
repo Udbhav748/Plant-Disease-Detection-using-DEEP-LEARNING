@@ -78,6 +78,13 @@ CLASS_NAMES = [
     "Tomato___healthy",
 ]
 
+# Static facts about the model that aren't derivable at runtime (e.g. test
+# accuracy comes from the notebook's held-out evaluation, not something the
+# server can recompute on the fly). Kept alongside CLASS_NAMES as the single
+# source of truth the frontend's About modal reads from.
+MODEL_ARCHITECTURE = "Hybrid CBAM-attention EfficientNetB0 CNN + Vision Transformer"
+TEST_ACCURACY = 0.9895
+
 # Initialize logger
 logging.basicConfig(level=logging.INFO)
 
@@ -103,6 +110,20 @@ else:
 @app.get("/ping")
 async def ping():
     return "Hello, I am alive"
+
+
+# Model metadata for the frontend's About modal - num_crops/num_classes are
+# derived live from CLASS_NAMES rather than hardcoded on the frontend.
+@app.get("/model-info")
+async def model_info():
+    crops = {name.split("___")[0] for name in CLASS_NAMES}
+    return {
+        "architecture": MODEL_ARCHITECTURE,
+        "num_classes": len(CLASS_NAMES),
+        "num_crops": len(crops),
+        "test_accuracy": TEST_ACCURACY,
+        "model_loaded": MODEL is not None,
+    }
 
 
 def preprocess_image(image: Image.Image) -> np.ndarray:

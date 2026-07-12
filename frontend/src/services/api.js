@@ -1,10 +1,20 @@
 const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8000/predict";
 
+// API_BASE_URL points at the /predict route specifically; strip that suffix
+// to get the backend's root for other endpoints like /model-info.
+const API_ROOT = API_BASE_URL.replace(/\/predict\/?$/, "");
+
 // The backend runs a single hybrid model regardless of the {model_id} path
 // segment (kept for route compatibility) - any identifier works here.
 const MODEL_ID = "hybrid-model";
 
 export class PredictionError extends Error {}
+
+export async function getModelInfo() {
+  const response = await fetch(`${API_ROOT}/model-info`);
+  if (!response.ok) throw new Error("Failed to fetch model info");
+  return response.json();
+}
 
 export async function predictDisease(file) {
   const formData = new FormData();
