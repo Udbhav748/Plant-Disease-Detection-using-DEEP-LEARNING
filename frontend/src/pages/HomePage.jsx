@@ -3,42 +3,45 @@ import { motion } from "framer-motion";
 import { Sparkles, Layers, ListChecks, Target, Zap, UploadCloud } from "lucide-react";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
-
-const FEATURES = [
-  {
-    icon: Sparkles,
-    title: "AI-powered detection",
-    description: "A deep learning model trained on tens of thousands of real leaf images.",
-  },
-  {
-    icon: Layers,
-    title: "Hybrid CNN + Transformer",
-    description: "Combines CBAM-attention EfficientNet with a Vision Transformer branch.",
-  },
-  {
-    icon: ListChecks,
-    title: "Multi-class classification",
-    description: "Identifies 38 conditions across 14 crop species in a single pass.",
-  },
-  {
-    icon: Target,
-    title: "High accuracy",
-    description: "98.95% accuracy on a held-out test set of over 10,000 images.",
-  },
-  {
-    icon: Zap,
-    title: "Instant prediction",
-    description: "Upload a photo and get a diagnosis in seconds, right in your browser.",
-  },
-];
-
-const STATS = [
-  { value: "98.95%", label: "Test accuracy" },
-  { value: "38", label: "Disease classes" },
-  { value: "14", label: "Crop species" },
-];
+import { useModelInfo } from "../hooks/useModelInfo";
 
 export default function HomePage() {
+  const info = useModelInfo();
+
+  const stats = [
+    { value: `${(info.test_accuracy * 100).toFixed(2)}%`, label: "Test accuracy" },
+    { value: `${info.num_classes}`, label: "Disease classes" },
+    { value: `${info.num_crops}`, label: "Crop species" },
+  ];
+
+  const features = [
+    {
+      icon: Sparkles,
+      title: "AI-powered detection",
+      description: "A deep learning model trained on tens of thousands of real leaf images.",
+    },
+    {
+      icon: Layers,
+      title: "Hybrid CNN + Transformer",
+      description: "Combines CBAM-attention EfficientNet with a Vision Transformer branch.",
+    },
+    {
+      icon: ListChecks,
+      title: "Multi-class classification",
+      description: `Identifies ${info.num_classes} conditions across ${info.num_crops} crop species in a single pass.`,
+    },
+    {
+      icon: Target,
+      title: "High accuracy",
+      description: `${(info.test_accuracy * 100).toFixed(2)}% accuracy on a held-out test set of over 10,000 images.`,
+    },
+    {
+      icon: Zap,
+      title: "Instant prediction",
+      description: "Upload a photo and get a diagnosis in seconds, right in your browser.",
+    },
+  ];
+
   return (
     <div className="flex flex-col gap-24 py-16 sm:py-24">
       <section className="flex flex-col items-center gap-8 text-center">
@@ -55,8 +58,8 @@ export default function HomePage() {
             Plant Disease Detection using Hybrid CNN + Transformer
           </h1>
           <p className="max-w-xl text-lg text-text-secondary dark:text-text-secondary-dark">
-            Upload a photo of a leaf and get an instant, accurate diagnosis across 38 diseases and 14 crop
-            species &mdash; no expertise required.
+            Upload a photo of a leaf and get an instant, accurate diagnosis across {info.num_classes} diseases
+            and {info.num_crops} crop species &mdash; no expertise required.
           </p>
           <Button to="/predict" size="lg" icon={UploadCloud}>
             Upload Leaf Image
@@ -69,7 +72,7 @@ export default function HomePage() {
           transition={{ duration: 0.2, delay: 0.1 }}
           className="flex flex-wrap items-center justify-center gap-8 sm:gap-16"
         >
-          {STATS.map((stat) => (
+          {stats.map((stat) => (
             <div key={stat.label} className="text-center">
               <p className="font-heading text-3xl font-bold text-accent">{stat.value}</p>
               <p className="text-sm text-text-secondary dark:text-text-secondary-dark">{stat.label}</p>
@@ -80,7 +83,7 @@ export default function HomePage() {
 
       <section>
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {FEATURES.map(({ icon: Icon, title, description }, index) => (
+          {features.map(({ icon: Icon, title, description }, index) => (
             <motion.div
               key={title}
               initial={{ opacity: 0, y: 12 }}

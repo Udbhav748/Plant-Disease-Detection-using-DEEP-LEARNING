@@ -1,35 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Cpu, Layers, ShieldCheck } from "lucide-react";
 import Modal from "../ui/Modal";
-import { getModelInfo } from "../../services/api";
-
-// Static fallback shown until the live /model-info response arrives (or if
-// the backend can't be reached) so the modal never renders empty.
-const FALLBACK_INFO = {
-  architecture: "Hybrid CBAM-attention EfficientNetB0 CNN + Vision Transformer",
-  num_classes: 38,
-  num_crops: 14,
-  test_accuracy: 0.9895,
-};
+import { useModelInfo } from "../../hooks/useModelInfo";
 
 export default function AboutModal({ isOpen, onClose }) {
-  const [info, setInfo] = useState(FALLBACK_INFO);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    getModelInfo()
-      .then((data) => {
-        if (!cancelled) setInfo(data);
-      })
-      .catch(() => {
-        // Backend unreachable - keep showing the static fallback above.
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const info = useModelInfo();
 
   const facts = [
     {
