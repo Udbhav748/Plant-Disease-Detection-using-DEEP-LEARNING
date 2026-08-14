@@ -1,0 +1,12 @@
+.git
+frontend
+notebooks
+screenshots
+results
+data
+backend/.venv
+backend/.env
+backend/server.log
+backend/__pycache__
+**/__pycache__
+*.pyc
