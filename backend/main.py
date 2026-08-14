@@ -93,7 +93,10 @@ if os.path.exists(MODEL_PATH):
     try:
         MODEL = build_hybrid(len(CLASS_NAMES))
         MODEL.load_weights(MODEL_PATH)
-        logging.info(f"Successfully loaded hybrid model weights from {MODEL_PATH}")
+        # Warm up the model graph to eliminate cold-start latency on the first request
+        dummy = np.zeros((1, 224, 224, 3), dtype=np.float32)
+        _ = MODEL(dummy, training=False)
+        logging.info(f"Successfully loaded hybrid model weights from {MODEL_PATH} and warmed up graph")
     except Exception as e:
         logging.error(f"Error loading hybrid model weights from {MODEL_PATH}: {e}")
         MODEL = None
@@ -125,7 +128,9 @@ def preprocess_image(image: Image.Image) -> np.ndarray:
     # Matches training preprocessing in the notebook: image_dataset_from_directory
     # yields raw [0, 255] float32 pixels with no rescaling layer in the model, so
     # inference must NOT normalize to [0, 1] either.
-    image = image.convert("RGB").resize((224, 224))
+    if image.mode != "RGB":
+        image = image.convert("RGB")
+    image = image.resize((224, 224), Image.Resampling.BILINEAR)
     image_array = np.array(image, dtype=np.float32)
     return np.expand_dims(image_array, axis=0)
 
@@ -139,20 +144,21 @@ async def predict(model_id: str, file: UploadFile = File(...)):
         raise HTTPException(status_code=503, detail="Model is not loaded.")
 
     # Check if the uploaded file is an image
-    if not file.content_type.startswith('image'):
+    if not file.content_type or not file.content_type.startswith('image'):
         raise HTTPException(status_code=400, detail="Uploaded file is not an image.")
 
     try:
         # Read file as image
-        image = Image.open(BytesIO(await file.read()))
+        image_bytes = await file.read()
+        image = Image.open(BytesIO(image_bytes))
     except UnidentifiedImageError:
         raise HTTPException(status_code=400, detail="Uploaded file is not a valid image.")
 
     try:
         img_batch = preprocess_image(image)
 
-        # Make predictions
-        predictions = MODEL.predict(img_batch)
+        # Make predictions using direct tensor call (avoids Dataset and batch iterator overhead)
+        predictions = MODEL(img_batch, training=False).numpy()
 
         # Get predicted class index and confidence
         predicted_class_idx = int(np.argmax(predictions[0]))
@@ -172,4 +178,4 @@ async def predict(model_id: str, file: UploadFile = File(...)):
 # Run the FastAPI app with uvicorn
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host='localhost', port=8000)
+    uvicorn.run(app, host='localhost', port=8001)
