@@ -1,7 +1,7 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from io import BytesIO
-from PIL import Image, UnidentifiedImageError
+from PIL import Image, ImageOps, UnidentifiedImageError
 from dotenv import load_dotenv
 import tensorflow as tf
 import numpy as np
@@ -125,12 +125,12 @@ async def model_info():
 
 
 def preprocess_image(image: Image.Image) -> np.ndarray:
-    # Matches training preprocessing in the notebook: image_dataset_from_directory
-    # yields raw [0, 255] float32 pixels with no rescaling layer in the model, so
-    # inference must NOT normalize to [0, 1] either.
+    # 1. Correct mobile camera orientation tags (iPhone/Android EXIF orientation)
+    image = ImageOps.exif_transpose(image)
     if image.mode != "RGB":
         image = image.convert("RGB")
-    image = image.resize((224, 224), Image.Resampling.BILINEAR)
+    # 2. Aspect-preserving center crop instead of squashing, preserving lesion geometry
+    image = ImageOps.fit(image, (224, 224), method=Image.Resampling.BILINEAR, centering=(0.5, 0.5))
     image_array = np.array(image, dtype=np.float32)
     return np.expand_dims(image_array, axis=0)
 
